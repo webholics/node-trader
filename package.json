@@ -1,0 +1,33 @@
+{
+    "name": "trader",
+    "description": "Tool for fetching stock statistics and indicator computations.",
+    "version": "0.0.1",
+    "homepage": "https://github.com/webholics/node-trader",
+    "author": {
+        "name": "Mario Volke",
+        "url": "http://mariovolke.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/webholics/node-trader.git"
+    },
+    "bugs": {
+        "url": "https://github.com/webholics/node-trader/issues"
+    },
+	"engines" : {
+        "node" : ">=0.8.x"
+    },
+    "bin": "./bin/cli.js",
+    "dependencies": {
+        "crawler": "0.2.2",
+        "commander": "1.1.1",
+        "progress": "0.1.0",
+        "easy-table": "0.2.0"
+    },
+    "devDependencies": {
+        "coffee-script": "~1.4.0",
+        "grunt": "~0.3.17",
+        "grunt-coffee": "0.0.6",
+        "grunt-contrib-clean": "0.3.1"
+    }
+}
