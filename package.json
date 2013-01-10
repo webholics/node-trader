@@ -30,6 +30,7 @@
         "grunt-coffee": "0.0.6",
         "grunt-contrib-clean": "0.3.1",
         "mocha": "~1.7.4",
+        "should": "~1.2.1",
         "grunt-simple-mocha": "~0.2.0"
     }
 }

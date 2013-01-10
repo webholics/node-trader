@@ -26,8 +26,9 @@
 
   tick = null;
 
+  bar = null;
+
   if (program.progress) {
-    bar = null;
     lastProgress = 0;
     tick = function(progress, total) {
       if (!bar) {
@@ -44,7 +45,7 @@
   }
 
   cb = function(err, equities) {
-    if (tick) {
+    if (bar) {
       process.stdout.write('\n');
     }
     if (err) {

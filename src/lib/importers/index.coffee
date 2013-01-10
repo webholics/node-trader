@@ -25,41 +25,32 @@ class IndexImporter
     getEquities: (cb, tick) ->
         finanzennetEndpoint = Endpoint.create 'finanzennet'
 
-        finanzennetEndpoint.searchIndex this.indexName, (err, index) =>
+        finanzennetEndpoint.getEquityUrlsByIndex this.indexName, (err, urls) =>
             if err
-                cb err
+                cb err, null
                 return
 
-            if not index
-                cb new Error('Index not found!')
-                return
+            if tick
+                tick 0, urls.length
 
-            finanzennetEndpoint.getEquityUrls index.url + '/Werte', (err, urls) =>
-                if err
-                    cb err, null
-                    return
+            equities = []
+            callbackCounter = 0
+            for url in urls
+                finanzennetEndpoint.crawlEquity url, this.stockMarket, (err, equity) =>
+                    if err
+                        if callbackCounter < urls.length
+                            callbackCounter = urls.length + 1 # prevent calling cb a second time
+                            cb err, null
+                        return
 
-                if tick
-                    tick 0, urls.length
+                    equities.push equity
+                    callbackCounter++
 
-                equities = []
-                callbackCounter = 0
-                for url in urls
-                    finanzennetEndpoint.crawlEquity url, this.stockMarket, (err, equity) =>
-                        if err
-                            if callbackCounter < urls.length
-                                callbackCounter = urls.length + 1 # prevent calling cb a second time
-                                cb err, null
-                            return
+                    if tick
+                        tick callbackCounter, url.length
 
-                        equities.push equity
-                        callbackCounter++
-
-                        if tick
-                            tick callbackCounter, url.length
-
-                        if callbackCounter == urls.length
-                            cb null, equities
+                    if callbackCounter == urls.length
+                        cb null, equities
         this
 
 module.exports = IndexImporter

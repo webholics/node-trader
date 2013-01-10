@@ -36,7 +36,6 @@ class FinanzennetEndpoint extends Endpoint
                     this.crawlIndex(url, cb)
                 else
                     url = $('.main').first().find('table tr').eq(1).find('a').attr('href')
-
                     if not url
                         cb(null, null)
                     else
@@ -81,44 +80,55 @@ class FinanzennetEndpoint extends Endpoint
     ###
     Get all equity URLs of an index
     ###
-    getEquityUrls: (indexUrl, cb) =>
-        # fetch first index page to crawl pagination
-        this.crawler.queue [
-            uri: indexUrl
-            callback: (err, result, $) =>
-                if err
-                    cb new Error('Could not load finanzen.net!'), null
-                    return
+    getEquityUrlsByIndex: (indexName, cb) ->
 
-                paginationLinks = $('.paging a:not(:last-child)')
-                numPages = paginationLinks.length + 1
-                pageCounter = 0
-                urls = []
+        this.searchIndex indexName, (err, index) =>
+            if err
+                cb err, null
+                return
 
-                indexPageCallback = (err, result, $) =>
+            if index == null
+                cb new Error('Index not found!'), null
+                return
+
+            # fetch first index page to crawl pagination
+            this.crawler.queue [
+                uri: index.url + '/Werte'
+                callback: (err, result, $) =>
                     if err
-                        if pageCounter < numPages
-                            pageCounter = numPages + 1 # prevent calling cb a second time
-                            cb new Error('Could not load finanzen.net!'), null
+                        cb new Error('Could not load finanzen.net!'), null
                         return
 
-                    for row, i in $('.main').last().find('table tr')
-                        # ignore head row of table
-                        if i > 0
-                            urls.push this.baseUrl + $(row).find('td:first-child a').attr('href')
+                    paginationLinks = $('.paging a:not(:last-child)')
+                    numPages = paginationLinks.length + 1
+                    pageCounter = 0
+                    urls = []
 
-                    pageCounter++
-                    if pageCounter == numPages
-                        cb null, urls
+                    indexPageCallback = (err, result, $) =>
+                        if err
+                            if pageCounter < numPages
+                                pageCounter = numPages + 1 # prevent calling cb a second time
+                                cb new Error('Could not load finanzen.net!'), null
+                            return
 
-                # fetch all index pages
-                indexPageCallback(err, result, $) # first page
-                for a in paginationLinks
-                    this.crawler.queue [
-                        uri: this.baseUrl + $(a).attr('href')
-                        callback: indexPageCallback
-                    ]
-        ]
+                        for row, i in $('.main').last().find('table tr')
+                            # ignore head row of table
+                            if i > 0
+                                urls.push this.baseUrl + $(row).find('td:first-child a').attr('href')
+
+                        pageCounter++
+                        if pageCounter == numPages
+                            cb null, urls
+
+                    # fetch all index pages
+                    indexPageCallback(err, result, $) # first page
+                    for a in paginationLinks
+                        this.crawler.queue [
+                            uri: this.baseUrl + $(a).attr('href')
+                            callback: indexPageCallback
+                        ]
+            ]
+        this
 
     ###
     Crawl an equity by its URL on finanzen.net
@@ -168,7 +178,7 @@ class FinanzennetEndpoint extends Endpoint
 
                 now = new Date
                 this.crawler.queue [
-                    uri: url + '/Historisch'
+                    uri: 'http://www.finanzen.net/kurse/kurse_historisch.asp'
                     method: 'POST',
                     form:
                         dtTag1: 1
@@ -228,6 +238,7 @@ class FinanzennetEndpoint extends Endpoint
 
                 if not this._isValidIndexUrl(result.request.href)
                     cb new Error('Not a valid index URL!'), null
+                    return
 
                 # name
                 name = null

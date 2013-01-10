@@ -18,8 +18,8 @@ importer = trader.Importer.create name, opts...
 output = trader.OutputFormatter.create name, opts...
 
 tick = null
+bar = null
 if program.progress
-    bar = null
     lastProgress = 0
     tick = (progress, total) ->
         # init bar on first call
@@ -35,7 +35,7 @@ if program.progress
 
 
 cb = (err, equities) ->
-    if tick
+    if bar
         process.stdout.write '\n'
 
     if err
