@@ -27,6 +27,16 @@ module.exports = function(grunt) {
         clean: {
             js: ['bin/*', 'lib/*']
         },
+        simplemocha: {
+            all: {
+                src: 'test/**/*.js',
+                options: {
+                    timeout: 60000, // we need huge timeout to test endpoints
+                    globals: ['confidence'],
+                    reporter: 'spec'
+                }
+            }
+        },
         watch: {
             files: ['src/**/*.coffee'],
             tasks: 'default'
@@ -35,6 +45,7 @@ module.exports = function(grunt) {
 
     grunt.loadNpmTasks('grunt-coffee');
     grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-simple-mocha');
 
     grunt.registerTask('default', 'coffee concat');
 };

@@ -28,6 +28,8 @@
         "coffee-script": "~1.4.0",
         "grunt": "~0.3.17",
         "grunt-coffee": "0.0.6",
-        "grunt-contrib-clean": "0.3.1"
+        "grunt-contrib-clean": "0.3.1",
+        "mocha": "~1.7.4",
+        "grunt-simple-mocha": "~0.2.0"
     }
 }

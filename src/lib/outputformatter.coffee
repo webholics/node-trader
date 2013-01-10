@@ -10,4 +10,11 @@ class OutputFormatter
     equitiesToString: (equities) ->
         ''
 
+    ###
+    Static factory method
+    ###
+    @create = (name, args...) ->
+        c = require './outputformatters/' + name.toLowerCase() + '.js'
+        new c(args...)
+
 module.exports = OutputFormatter

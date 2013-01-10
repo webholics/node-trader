@@ -6,8 +6,8 @@ Fetch stock data from finanzen.net
 ###
 class FinanzennetEndpoint extends Endpoint
     constructor: ->
-        @baseUrl = 'http://www.finanzen.net'
-        @crawler = new Crawler
+        this.baseUrl = 'http://www.finanzen.net'
+        this.crawler = new Crawler
             forceUTF8: true
             #debug: true
             maxConnections: 10
@@ -16,185 +16,132 @@ class FinanzennetEndpoint extends Endpoint
             # This means you have to create a new endpoint if you want to flush the cash!
             cache: true
 
-    # Retrieve a list of available stock indices.
-    getIndices: (cb) ->
+    ###
+    Retrieve a single index by some search.
+    This method always returns only one result. The one that fits the search term best.
+    ###
+    searchIndex: (name, cb) ->
         that = this
 
         # fetch indicies
-        @crawler.queue [
-            uri: 'http://www.finanzen.net/indizes/Alle'
-            callback: (error, result, $) =>
-                if error
-                    cb(new Error('Could not load finanzen.net!'), null)
-                    return
-
-                indices = []
-                $("#idSortTable tr").each ->
-                    cols = $('td', this)
-                    if cols.length > 0
-                        a = $('a', cols[0])
-                        td = $(cols[0]).clone()
-                        td.children('a').remove()
-                        td.children('br').remove()
-                        country = td.text()
-
-                        lastValue = parseFloat(
-                            $(cols[1]).text()
-                                .replace(/<br>.*/, '').replace(/\./g, '').replace(/,/g, '.')
-                        )
-
-                        parts = a.attr('href').split('/')
-                        id = parts[parts.length - 1].toLowerCase()
-
-                        indices.push
-                            id: id
-                            name: a.text()
-                            url: that.baseUrl + a.attr('href')
-                            country: td.text(),
-                            lastValue: lastValue
-
-                cb(null, indices)
-            ]
-        this
-
-    ###
-    Retrieve a single equity by ISIN
-    ###
-    getEquityByIsin: (isin, cb) ->
-        # we just use search here
-        this.searchEquity(isin, cb)
-        this
-
-    ###
-    Retrieve a single equity by some search.
-    This method always returns only one result. The one that fits the search term best.
-    ###
-    searchEquity: (name, cb) ->
-        # search supports GET requests
-        url = 'http://www.finanzen.net/suchergebnis.asp?strSuchString=' + encodeURIComponent(name) + '&strKat=Aktien'
-        @crawler.queue [
-            uri: url
+        this.crawler.queue [
+            uri: 'http://www.finanzen.net/suchergebnis.asp?strSuchString=' + encodeURIComponent(name) + '&strKat=Indizes'
             callback: (error, result, $) =>
                 if error
                     cb(new Error('Could not load finanzen.net!'), null)
                     return
 
                 # if search has a unique result finanzen.net redirects directly to the equity page
-                if this._isValidEquityUrl(result.request.href)
-                    this._crawlEquity(url, cb)
+                if this._isValidIndexUrl(result.request.href)
+                    this.crawlIndex(url, cb)
                 else
-                    url = @baseUrl + $('.main').first().find('table tr').eq(1).find('a').attr('href')
+                    url = $('.main').first().find('table tr').eq(1).find('a').attr('href')
+
                     if not url
                         cb(null, null)
                     else
-                        this._crawlEquity(url, cb)
+                        this.crawlIndex(this.baseUrl + url, cb)
             ]
         this
 
     ###
-    Retrieve all equities of an Index
-
-    indexId has to exist in the result set of getIndices() of the same endpoint!
+    Retrieve a single equity by ISIN
     ###
-    getEquitiesByIndex: (indexId, cb, tick) ->
-        # helper method to fetch all equity urls of an index
-        getEquityUrls = (indexUrl, cb) =>
-            # fetch first index page to crawl pagination
-            @crawler.queue [
-                uri: indexUrl
-                callback: (err, result, $) =>
-                    if err
-                        cb(new Error('Could not load finanzen.net!'), null)
-                        return
-
-                    paginationLinks = $('.paging a:not(:last-child)')
-                    numPages = paginationLinks.length + 1
-                    pageCounter = 0
-                    urls = []
-
-                    indexPageCallback = (err, result, $) =>
-                        if err
-                            if pageCounter < numPages
-                                pageCounter = numPages + 1 # prevent calling cb a second time
-                                cb(new Error('Could not load finanzen.net!'), null)
-                            return
-
-                        for row, i in $('.main').last().find('table tr')
-                            # ignore head row of table
-                            if i > 0
-                                urls.push @baseUrl + $(row).find('td:first-child a').attr('href')
-
-                        pageCounter++
-                        if pageCounter == numPages
-                            cb(null, urls)
-
-                    # fetch all index pages
-                    indexPageCallback(err, result, $) # first page
-                    for a in paginationLinks
-                        @crawler.queue [
-                            uri: @baseUrl + $(a).attr('href')
-                            callback: indexPageCallback
-                        ]
-            ]
-
-        # here it begins
-        this.getIndices (err, indices) =>
-            if err
-                cb(err)
-                return
-
-            # find indexId in list
-            indexId = indexId.toLowerCase()
-            index = null
-            for i in indices
-                if i.id == indexId
-                    index = i
-                    break
-
-            if not index
-                cb(new Error('Given index not available!'))
-                return
-
-            getEquityUrls index.url + '/Werte', (err, urls) =>
-                if err
-                    cb(err, null)
-                    return
-
-                if tick
-                    tick(0, urls.length)
-
-                equities = []
-                callbackCounter = 0
-                for url in urls
-                    this._crawlEquity url, (err, equity) =>
-                        if err
-                            if callbackCounter < urls.length
-                                callbackCounter = urls.length + 1 # prevent calling cb a second time
-                                cb(err, null)
-                            return
-
-                        equities.push equity
-                        callbackCounter++
-
-                        if tick
-                            tick(callbackCounter, url.length)
-
-                        if callbackCounter == urls.length
-                            cb(null, equities)
-
+    getEquityByIsin: (isin, stockMarket, cb) ->
+        # we just use search here
+        this.searchEquity(isin, stockMarket, cb)
         this
 
-    _crawlEquity: (url, cb) ->
-        # fetch indicies
-        @crawler.queue [
+    ###
+    Retrieve a single equity by some search.
+    This method always returns only one result. The one that fits the search term best.
+    ###
+    searchEquity: (name, stockMarket, cb) ->
+        # search supports GET requests
+        url = 'http://www.finanzen.net/suchergebnis.asp?strSuchString=' + encodeURIComponent(name) + '&strKat=Aktien'
+        this.crawler.queue [
             uri: url
             callback: (error, result, $) =>
                 if error
-                    cb(new Error('Could not load finanzen.net!'), null)
+                    cb new Error('Could not load finanzen.net!'), null
+                    return
+
+                # if search has a unique result finanzen.net redirects directly to the equity page
+                if this._isValidEquityUrl result.request.href
+                    this.crawlEquity url, stockMarket, cb
+                else
+                    url = $('.main').first().find('table tr').eq(1).find('a').attr('href')
+                    if not url
+                        cb null, null
+                    else
+                        this.crawlEquity this.baseUrl + url, stockMarket, cb
+            ]
+        this
+
+    ###
+    Get all equity URLs of an index
+    ###
+    getEquityUrls: (indexUrl, cb) =>
+        # fetch first index page to crawl pagination
+        this.crawler.queue [
+            uri: indexUrl
+            callback: (err, result, $) =>
+                if err
+                    cb new Error('Could not load finanzen.net!'), null
+                    return
+
+                paginationLinks = $('.paging a:not(:last-child)')
+                numPages = paginationLinks.length + 1
+                pageCounter = 0
+                urls = []
+
+                indexPageCallback = (err, result, $) =>
+                    if err
+                        if pageCounter < numPages
+                            pageCounter = numPages + 1 # prevent calling cb a second time
+                            cb new Error('Could not load finanzen.net!'), null
+                        return
+
+                    for row, i in $('.main').last().find('table tr')
+                        # ignore head row of table
+                        if i > 0
+                            urls.push this.baseUrl + $(row).find('td:first-child a').attr('href')
+
+                    pageCounter++
+                    if pageCounter == numPages
+                        cb null, urls
+
+                # fetch all index pages
+                indexPageCallback(err, result, $) # first page
+                for a in paginationLinks
+                    this.crawler.queue [
+                        uri: this.baseUrl + $(a).attr('href')
+                        callback: indexPageCallback
+                    ]
+        ]
+
+    ###
+    Crawl an equity by its URL on finanzen.net
+
+    @param {String} url URL of an equity on finanzen.net
+    @param {String} stockMarket Unique string of a stock market on finanzen.net (e.g. FSE for Frankfurt Stock Exchange)
+    @param {Function} cb Callback is called with Error|null and Object, the crawled equity
+    ###
+    crawlEquity: (url, stockMarket, cb) ->
+
+        # use correct stock market
+        url = url.replace(/@stBoerse_.*/, '') + '@stBoerse_' + stockMarket
+
+        this.crawler.queue [
+            uri: url
+            callback: (error, result, $) =>
+                if error
+                    cb new Error('Could not load finanzen.net!'), null
                     return
 
                 if not this._isValidEquityUrl(result.request.href)
-                    cb(new Error('Not a valid equity URL!'), null)
+                    cb new Error('Not a valid equity URL!'), null
+                    return
 
                 equity =
                     name: $('.pricebox h2').first().text().replace(/Aktienkurs\s/, '').replace(/\sin.*/, '')
@@ -204,10 +151,148 @@ class FinanzennetEndpoint extends Endpoint
                 equity.wkn = matches[1]
                 equity.isin = matches[2]
 
-                cb(null, equity)
+                # current price
+                equity.currentPrice = parseFloat($('.pricebox .content table').eq(0).find('th:first-child').text().replace('.', '').replace(',','.'))
+
+                # find finanzen.net equity ID
+                finanzennetId = null
+                finanzennetIdRegexp = /pkAktieNr=(\d+)/
+                for a in $('.infobox a')
+                    matches = finanzennetIdRegexp.exec($(a).attr('href'))
+                    if finanzennetId == null and matches
+                        finanzennetId = matches[1]
+                        break
+
+                if finanzennetId == null
+                    cb new Error('Problem while parsing equity page!'), null
+
+                now = new Date
+                this.crawler.queue [
+                    uri: url + '/Historisch'
+                    method: 'POST',
+                    form:
+                        dtTag1: 1
+                        dtMonat1: 1
+                        dtJahr1: now.getFullYear() - 2
+                        dtTag2: now.getDate()
+                        dtMonat2: now.getMonth()
+                        dtJahr2: now.getFullYear()
+                        strBoerse: stockMarket
+                        pkAktieNr: finanzennetId
+                    callback: (err, result, $) =>
+                        if err
+                            cb new Error('Could not load finanzen.net!'), null
+                            return
+
+                        rows = $('.table_quotes tr:has(td)');
+
+                        # daily prices
+                        dailyPrices = []
+                        for row in rows
+                            dailyPrices.push parseFloat($(row).find('td').eq(1).text().replace('.', '').replace(',','.'))
+                            if dailyPrices.length == 30
+                                break
+                        equity.dailyPrices = dailyPrices
+
+                        # monthly prices
+                        monthlyPrices = []
+                        lastMonth = null
+                        lastValue = null
+                        for row in rows
+                            tds = $(row).find('td')
+                            month = parseInt(tds.eq(0).text().split('.')[1])
+                            value = parseFloat(tds.eq(1).text().replace('.', '').replace(',','.'))
+                            if lastMonth != null and lastMonth != month
+                                monthlyPrices.push value
+                            lastMonth = month
+                            lastValue = value
+                            if monthlyPrices.length == 12
+                                break
+                        equity.monthlyPrices = monthlyPrices
+
+                        cb null, equity
+                ]
             ]
         this
 
-    _isValidEquityUrl: (url) -> /http:\/\/www\.finanzen\.net\/aktien\/[^\/]+/.test(url)
+    ###
+    Crawl an index by its URL on finanzen.net
+    ###
+    crawlIndex: (url, cb) ->
+        this.crawler.queue [
+            uri: url
+            callback: (err, result, $) =>
+                if err
+                    cb new Error('Could not load finanzen.net!'), null
+                    return
+
+                if not this._isValidIndexUrl(result.request.href)
+                    cb new Error('Not a valid index URL!'), null
+
+                # name
+                name = null
+                nameRegex = /Marktberichte\szum\s(.+)/
+                for h2 in $('.content_box h2')
+                    matches = nameRegex.exec($(h2).text())
+                    if matches
+                        name = matches[1]
+                        break
+
+                index =
+                    name: name
+                    url: result.request.href
+
+                # current price
+                index.currentPrice = parseFloat($('.pricebox .content table').eq(0).find('th:first-child').text().replace('.', '').replace(',','.'))
+
+                now = new Date
+                this.crawler.queue [
+                    uri: url + '/Historisch'
+                    method: 'POST',
+                    form:
+                        dtTag1: 1
+                        dtMonat1: 1
+                        dtJahr1: now.getFullYear() - 2
+                        dtTag2: now.getDate()
+                        dtMonat2: now.getMonth()
+                        dtJahr2: now.getFullYear()
+                    callback: (err, result, $) =>
+                        if err
+                            cb(new Error('Could not load finanzen.net!'), null)
+                            return
+
+                        rows = $('.table_quotes tr:has(td)');
+
+                        # daily prices
+                        dailyPrices = []
+                        for row in rows
+                            dailyPrices.push parseFloat($(row).find('td').eq(1).text().replace('.', '').replace(',','.'))
+                            if dailyPrices.length == 30
+                                break
+                        index.dailyPrices = dailyPrices
+
+                        # monthly prices
+                        monthlyPrices = []
+                        lastMonth = null
+                        lastValue = null
+                        for row in rows
+                            tds = $(row).find('td')
+                            month = parseInt(tds.eq(0).text().split('.')[1])
+                            value = parseFloat(tds.eq(1).text().replace('.', '').replace(',','.'))
+                            if lastMonth != null and lastMonth != month
+                                monthlyPrices.push value
+                            lastMonth = month
+                            lastValue = value
+                            if monthlyPrices.length == 12
+                                break
+                        index.monthlyPrices = monthlyPrices
+
+                        cb null, index
+                ]
+            ]
+        this
+
+    _isValidEquityUrl: (url) -> /http:\/\/www\.finanzen\.net\/aktien\/[^\/]+$/.test(url)
+    _isValidIndexUrl: (url) -> /http:\/\/www\.finanzen\.net\/index\/[^\/]+$/.test(url)
 
 module.exports = FinanzennetEndpoint
