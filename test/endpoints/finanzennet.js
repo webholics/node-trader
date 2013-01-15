@@ -6,11 +6,11 @@
   assertIndex = function(index, name) {
     var p, _i, _j, _len, _len1, _ref, _ref1, _results;
     should.exist(index);
-    index.should.have.keys('name', 'url', 'currentPrice', 'dailyPrices', 'monthlyPrices');
+    index.should.have.keys('name', 'url', 'latestPrice', 'dailyPrices', 'monthlyPrices');
     if (name) {
       index.name.should.equal(name);
     }
-    (index.currentPrice > 0).should.be.ok;
+    (index.latestPrice > 0).should.be.ok;
     index.dailyPrices.length.should.equal(30);
     _ref = index.dailyPrices;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -29,7 +29,7 @@
 
   assertEquity = function(equity, name) {
     should.exist(equity);
-    equity.should.have.keys('name', 'isin', 'wkn', 'currentPrice', 'dailyPrices', 'monthlyPrices');
+    equity.should.have.keys('name', 'isin', 'wkn', 'latestPrice', 'dailyPrices', 'monthlyPrices');
     if (name) {
       return equity.name.should.equal(name);
     }

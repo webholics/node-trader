@@ -3,19 +3,27 @@
 
     Equity:
     ---------
-    An equity object must contain the following attributes:
+    An equity object should contain the following attributes:
     {
         isin: The ISIN unique equity id
         name: The name of the equity
-        currentPrice: The current price (as realtime as possible)
+        latestPrice: The current price (as realtime as possible)
         monthlyPrices: [...] Array of monthly prices of the first day in each month of the last 12 months starting with the price at the beginning of the current month.
         dailyPrices: [...] Array of daily prices at the beginning of each day in the last 30 trading(!) days starting with the price of the last ended trading day.
+        latestFacts: {
+            year: The year of the facts
+            pbRatio: P/B ratio (german: KBV)
+            peRatio: P/E ratio (german: KGV)
+        }
+        historicFacts: [{},...] Array containing the same objects as latestFacts but with facts of the last years, latestFacts is not included in this list
     }
 
     The following attributes are optional:
     {
         wkn: The WKN unique equity id
     }
+
+    If some values cannot be retrieved they will be null.
 ###
 class Importer
     constructor: ->

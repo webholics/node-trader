@@ -2,12 +2,12 @@ should = require 'should'
 
 assertIndex = (index, name) ->
     should.exist index
-    index.should.have.keys 'name', 'url', 'currentPrice', 'dailyPrices', 'monthlyPrices'
+    index.should.have.keys 'name', 'url', 'latestPrice', 'dailyPrices', 'monthlyPrices'
 
     if name
         index.name.should.equal name
 
-    (index.currentPrice > 0).should.be.ok
+    (index.latestPrice > 0).should.be.ok
 
     index.dailyPrices.length.should.equal 30
     for p in index.dailyPrices
@@ -19,7 +19,7 @@ assertIndex = (index, name) ->
 
 assertEquity = (equity, name) ->
     should.exist equity
-    equity.should.have.keys 'name', 'isin', 'wkn', 'currentPrice', 'dailyPrices', 'monthlyPrices'
+    equity.should.have.keys 'name', 'isin', 'wkn', 'latestPrice', 'dailyPrices', 'monthlyPrices'
 
     if name
         equity.name.should.equal name

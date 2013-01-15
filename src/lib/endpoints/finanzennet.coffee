@@ -35,7 +35,7 @@ class FinanzennetEndpoint extends Endpoint
                 if this._isValidIndexUrl(result.request.href)
                     this.crawlIndex(url, cb)
                 else
-                    url = $('.main').first().find('table tr').eq(1).find('a').attr('href')
+                    url = $('.main table tr').eq(1).find('a').attr('href')
                     if not url
                         cb(null, null)
                     else
@@ -69,7 +69,7 @@ class FinanzennetEndpoint extends Endpoint
                 if this._isValidEquityUrl result.request.href
                     this.crawlEquity url, stockMarket, cb
                 else
-                    url = $('.main').first().find('table tr').eq(1).find('a').attr('href')
+                    url = $('.main table tr').eq(1).find('a').attr('href')
                     if not url
                         cb null, null
                     else
@@ -162,7 +162,7 @@ class FinanzennetEndpoint extends Endpoint
                 equity.isin = matches[2]
 
                 # current price
-                equity.currentPrice = parseFloat($('.pricebox .content table').eq(0).find('th:first-child').text().replace('.', '').replace(',','.'))
+                equity.latestPrice = parseFloat($('.pricebox .content table').eq(0).find('th:first-child').text().replace('.', '').replace(',','.'))
 
                 # find finanzen.net equity ID
                 finanzennetId = null
@@ -254,7 +254,7 @@ class FinanzennetEndpoint extends Endpoint
                     url: result.request.href
 
                 # current price
-                index.currentPrice = parseFloat($('.pricebox .content table').eq(0).find('th:first-child').text().replace('.', '').replace(',','.'))
+                index.latestPrice = parseFloat($('.pricebox .content table').eq(0).find('th:first-child').text().replace('.', '').replace(',','.'))
 
                 now = new Date
                 this.crawler.queue [
