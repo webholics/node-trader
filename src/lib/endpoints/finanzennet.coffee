@@ -194,7 +194,7 @@ class FinanzennetEndpoint extends Endpoint
                             cb new Error('Could not load finanzen.net!'), null
                             return
 
-                        rows = $('.table_quotes tr:has(td)');
+                        rows = $('.table_quotes tr:has(td)')
 
                         # daily prices
                         dailyPrices = []

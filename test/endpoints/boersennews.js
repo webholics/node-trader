@@ -4,11 +4,22 @@
   should = require('should');
 
   assertEquity = function(equity, name) {
+    var f, factsKeys, _i, _len, _ref, _ref1, _ref2, _results;
     should.exist(equity);
     equity.should.have.keys('name', 'isin', 'wkn', 'latestFacts', 'historicFacts');
     if (name) {
-      return equity.name.should.equal(name);
+      equity.name.should.equal(name);
     }
+    factsKeys = ['year', 'pbRatio', 'peRatio', 'dividendPerStock', 'returnOfEquity', 'ebitMargin', 'equityRatio'];
+    (_ref = equity.latestFacts.should.have).keys.apply(_ref, factsKeys);
+    equity.historicFacts.should.be.an.instanceOf(Array);
+    _ref1 = equity.historicFacts;
+    _results = [];
+    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+      f = _ref1[_i];
+      _results.push((_ref2 = f.should.have).keys.apply(_ref2, factsKeys));
+    }
+    return _results;
   };
 
   describe('BoersennewsEndpoint', function() {

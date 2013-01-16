@@ -14,6 +14,10 @@
             year: The year of the facts
             pbRatio: P/B ratio (german: KBV)
             peRatio: P/E ratio (german: KGV)
+            dividendPerStock: (german: Dividende pro Aktie)
+            returnOfEquity: (german: Eigenkapitalrendite)
+            ebitMargin: (german: EBIT Marge)
+            equityRatio: (german: Eigenkapitalquote)
         }
         historicFacts: [{},...] Array containing the same objects as latestFacts but with facts of the last years, latestFacts is not included in this list
     }

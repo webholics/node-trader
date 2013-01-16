@@ -77,19 +77,23 @@ class BoersennewsEndpoint extends Endpoint
                 colsMap = {}
                 for col, i in $('.tabList tr').eq(0).find('th')
                     if /^\d+$/.test $(col).text()
-                        colsMap[parseInt $(col).text()] = i
+                        colsMap[$(col).text()] = i
 
                 # create facts per year with null values
                 factsPerYear = {}
-                for year, i in colsMap
+                for year, i of colsMap
                     factsPerYear[year] =
                         year: year
                         pbRatio: null
                         peRatio: null
+                        dividendPerStock: null
+                        returnOfEquity: null
+                        ebitMargin: null
+                        equityRatio: null
 
                 # helper function
                 fillFacts = (cols, key) =>
-                    for year, colIndex in colsMap
+                    for year, colIndex of colsMap
                         # parse number
                         matches = /([0-9,\.-]+)/.exec(cols.eq(colIndex).text())
                         if matches and matches[1] != '-'
@@ -99,12 +103,28 @@ class BoersennewsEndpoint extends Endpoint
                 #iterate over table rows and fill as much facts as possible
                 for row in $('.tabList tr:has(td)')
                     cols = $(row).find('td')
-                    if /^KGV/.test cols.eq(0).text()
+                    label = cols.eq(0).text()
+                    if /^\s*KGV/.test label
                         fillFacts cols, 'peRatio'
+                        continue
+                    if /^\s*KBV/.test label
+                        fillFacts cols, 'pbRatio'
+                        continue
+                    if /^\s*Dividende je Aktie/.test label
+                        fillFacts cols, 'dividendPerStock'
+                        continue
+                    if /^\s*Eigenkapitalrendite/.test label
+                        fillFacts cols, 'returnOfEquity'
+                        continue
+                    if /^\s*EBIT-Marge/.test label
+                        fillFacts cols, 'ebitMargin'
+                        continue
+                    if /^\s*Eigenkapitalquote/.test label
+                        fillFacts cols, 'equityRatio'
                         continue
 
                 facts = []
-                for obj in factsPerYear
+                for i, obj of factsPerYear
                     facts.push obj
                 facts.sort (a,b) -> b.year - a.year
 

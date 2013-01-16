@@ -9,7 +9,7 @@ class IndexImporter
     @param {String} indexName Name of the index, uses search on finanzen.net to find the actual index
     @param {String} stockMarket The finanzen.net string for a stock market (e.g. FSE for Frankfurt Stock Exchange)
     ###
-    constructor: (indexName, stockMarket) ->
+    constructor: (indexName, stockMarket = 'FSE') ->
         this.indexName = indexName
         this.stockMarket = stockMarket
 
@@ -24,6 +24,7 @@ class IndexImporter
     ###
     getEquities: (cb, tick) ->
         finanzennetEndpoint = Endpoint.create 'finanzennet'
+        boersennewsEndpoint = Endpoint.create 'boersennews'
 
         finanzennetEndpoint.getEquityUrlsByIndex this.indexName, (err, urls) =>
             if err
@@ -43,14 +44,26 @@ class IndexImporter
                             cb err, null
                         return
 
-                    equities.push equity
-                    callbackCounter++
+                    # fetch additional data from boersennews.de
+                    boersennewsEndpoint.getEquityByIsin equity.isin, (err, equity2) =>
+                        if err
+                            if callbackCounter < urls.length
+                                callbackCounter = urls.length + 1 # prevent calling cb a second time
+                                cb err, null
+                            return
 
-                    if tick
-                        tick callbackCounter, url.length
+                        # merge data
+                        equity.latestFacts = equity2.latestFacts
+                        equity.historicFacts = equity2.historicFacts
 
-                    if callbackCounter == urls.length
-                        cb null, equities
+                        equities.push equity
+                        callbackCounter++
+
+                        if tick
+                            tick callbackCounter, url.length
+
+                        if callbackCounter == urls.length
+                            cb null, equities
         this
 
 module.exports = IndexImporter
