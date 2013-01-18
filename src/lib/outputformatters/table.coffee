@@ -11,14 +11,19 @@ class TableOutputFormatter extends OutputFormatter
     Convert an array of equities to string
     ###
     equitiesToString: (equities) ->
-        #table = new Table
+        table = new Table
 
-        #equities.forEach (equity) =>
-        #    table.cell('ISIN', equity.isin)
-        #    table.cell('Name', equity.name)
-        #    table.cell('WKN', equity.wkn)
-        #    table.newRow()
+        equities.forEach (equity) =>
+            table.cell 'Name', equity.name
+            table.cell 'ISIN', equity.isin
+            table.cell 'WKN', equity.wkn
+            table.cell 'Latest Price', equity.latestPrice, Table.Number(2)
 
-        Table.printArray equities
+            if equity['rating']
+                table.cell 'Score', equity.rating.score, Table.Number(2)
+                table.cell 'Certainty, %', equity.rating.certainty * 100, Table.Number(2)
+
+            table.newRow()
+        table.toString()
 
 module.exports = TableOutputFormatter

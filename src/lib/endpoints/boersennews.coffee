@@ -88,8 +88,12 @@ class BoersennewsEndpoint extends Endpoint
                         peRatio: null
                         dividendPerStock: null
                         returnOfEquity: null
+                        ebit: null
+                        ebitda: null
                         ebitMargin: null
+                        ebitdaMargin: null
                         equityRatio: null
+                        marketCap: null
 
                 # helper function
                 fillFacts = (cols, key) =>
@@ -104,6 +108,10 @@ class BoersennewsEndpoint extends Endpoint
                 for row in $('.tabList tr:has(td)')
                     cols = $(row).find('td')
                     label = cols.eq(0).text()
+
+                    if /^\s*Marktkapitalisierung\/EBITDA/.test label
+                        fillFacts cols, 'marketCapPerEbitda'
+                        continue
                     if /^\s*KGV/.test label
                         fillFacts cols, 'peRatio'
                         continue
@@ -116,15 +124,32 @@ class BoersennewsEndpoint extends Endpoint
                     if /^\s*Eigenkapitalrendite/.test label
                         fillFacts cols, 'returnOfEquity'
                         continue
-                    if /^\s*EBIT-Marge/.test label
-                        fillFacts cols, 'ebitMargin'
-                        continue
                     if /^\s*Eigenkapitalquote/.test label
                         fillFacts cols, 'equityRatio'
                         continue
+                    if /^\s*EBIT-Marge/.test label
+                        fillFacts cols, 'ebitMargin'
+                        continue
+                    if /^\s*EBITDA-Marge/.test label
+                        fillFacts cols, 'ebitdaMargin'
+                        continue
+                    if /^\s*EBITDA/.test label
+                        fillFacts cols, 'ebitda'
+                        continue
+                    if /^\s*EBIT/.test label
+                        fillFacts cols, 'ebit'
+                        continue
+
+                # compute additional facts
+                for i, obj of factsPerYear
+                    if obj.marketCapPerEbitda != null and obj.ebitda != null
+                        obj.marketCap = obj.marketCapPerEbitda * obj.ebitda
 
                 facts = []
                 for i, obj of factsPerYear
+                    # remove unnecessary facts
+                    delete obj['marketCapPerEbitda']
+
                     facts.push obj
                 facts.sort (a,b) -> b.year - a.year
 
