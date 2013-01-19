@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 (function() {
-  var ProgressBar, importer, importerCb, list, makeTick, name, opts, output, program, rating, trader, _ref, _ref1, _ref2, _ref3, _ref4, _ref5,
+  var IndexImporter, ProgressBar, importer, importerCb, list, makeTick, name, opts, output, program, rating, readline, rl, trader, _ref, _ref1, _ref2, _ref3, _ref4, _ref5,
     __slice = [].slice;
 
   trader = require('../lib/trader.js');
@@ -9,6 +9,8 @@
   ProgressBar = require('progress');
 
   program = require('commander');
+
+  readline = require('readline');
 
   list = function(val) {
     return val.split(':');
@@ -28,8 +30,19 @@
 
   if (program.rating) {
     _ref4 = program.rating, name = _ref4[0], opts = 2 <= _ref4.length ? __slice.call(_ref4, 1) : [];
+    IndexImporter = require('../lib/importers/index.js');
+    if (opts.length === 0 && name.toLowerCase() === 'levermann' && importer instanceof IndexImporter) {
+      opts.push(importer.getIndexName());
+    }
     rating = (_ref5 = trader.Rating).create.apply(_ref5, [name].concat(__slice.call(opts)));
   }
+
+  rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.setPrompt('', 0);
 
   makeTick = function(title) {
     var bar, lastProgress;
@@ -47,7 +60,10 @@
       bar.tick(progress - lastProgress);
       lastProgress = progress;
       if (progress === total) {
-        return process.stdout.write('\n');
+        return rl.write(null, {
+          ctrl: true,
+          name: 'u'
+        });
       }
     };
   };
@@ -74,9 +90,18 @@
         }
         return b.rating.score - a.rating.score;
       });
+      if (program.progress) {
+        rl.write(null, {
+          ctrl: true,
+          name: 'u'
+        });
+      }
       process.stdout.write(output.equitiesToString(equities));
       return process.exit(0);
     };
+    if (program.progress) {
+      rl.write('Rating equities...');
+    }
     return rating.getRating(equities, ratingCb);
   };
 

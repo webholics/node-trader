@@ -60,10 +60,13 @@ class IndexImporter
                         callbackCounter++
 
                         if tick
-                            tick callbackCounter, url.length
+                            tick callbackCounter, urls.length
 
                         if callbackCounter == urls.length
                             cb null, equities
         this
+
+    getStockMarket: -> return this.stockMarket
+    getIndexName: -> return this.indexName
 
 module.exports = IndexImporter

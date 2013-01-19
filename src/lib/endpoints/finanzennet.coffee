@@ -32,14 +32,14 @@ class FinanzennetEndpoint extends Endpoint
                     return
 
                 # if search has a unique result finanzen.net redirects directly to the equity page
-                if this._isValidIndexUrl(result.request.href)
-                    this.crawlIndex(url, cb)
+                if this._isValidIndexUrl result.request.href
+                    this.crawlIndex result.request.href, cb
                 else
                     url = $('.main table tr').eq(1).find('a').attr('href')
                     if not url
-                        cb(null, null)
+                        cb null, null
                     else
-                        this.crawlIndex(this.baseUrl + url, cb)
+                        this.crawlIndex this.baseUrl + url, cb
             ]
         this
 
@@ -67,7 +67,7 @@ class FinanzennetEndpoint extends Endpoint
 
                 # if search has a unique result finanzen.net redirects directly to the equity page
                 if this._isValidEquityUrl result.request.href
-                    this.crawlEquity url, stockMarket, cb
+                    this.crawlEquity result.request.href, stockMarket, cb
                 else
                     url = $('.main table tr').eq(1).find('a').attr('href')
                     if not url

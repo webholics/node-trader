@@ -38,9 +38,18 @@ class LevermannRating extends Rating
                 totalErrors = 0
 
                 scores = [
-                    this.getIndicatorReturnOfEquity equity,
-                    this.getIndicator3MonthReversal equity, index
+                    this.getIndicatorReturnOfEquity(equity),
+                    this.getIndicatorEbitMargin(equity),
+                    this.getIndicatorEquityRatio(equity),
+                    this.getIndicatorPbRatio(equity),
+                    this.getIndicatorPeRatio(equity),
+                    this.getIndicatorPeRatioMean(equity),
+                    this.getIndicatorPerformance12M(equity),
+                    this.getIndicatorPerformance6M(equity),
+                    this.getIndicatorPriceMomentum(equity),
+                    this.getIndicator3MonthReversal(equity, index)
                 ]
+
                 for score in scores
                     if score instanceof Error
                         totalErrors++
@@ -73,6 +82,106 @@ class LevermannRating extends Rating
         if val > 12
             return 1
         if val < 6
+            return -1
+        return 0
+
+    getIndicatorEquityRatio: (equity) ->
+        val = equity.latestFacts.equityRatio
+        if val == null
+            return new Error
+
+        if val > 25
+            return 1
+        if val < 15
+            return -1
+        return 0
+
+    getIndicatorPbRatio: (equity) ->
+        val = equity.latestFacts.pbRatio
+        if val == null
+            return new Error
+
+        if val < 0.6
+            return 2
+        if val < 0.9
+            return 1
+        if val < 1.3
+            return 0
+        return -1
+
+    getIndicatorPeRatio: (equity) ->
+        val = equity.latestFacts.peRatio
+        if val == null
+            return new Error
+
+        if val < 12
+            return 1
+        if val > 16
+            return -1
+        return 0
+
+    getIndicatorPeRatioMean: (equity) ->
+        # the mean of the last 5 years
+        numYears = 5
+
+        val = 0
+        if equity.latestFacts.peRatio == null
+            return new Error
+        else
+            val += equity.latestFacts.peRatio
+
+        if not equity.historicFacts or equity.historicFacts.length < numYears-1
+            return new Error
+
+        for facts, i in equity.historicFacts
+            if i == numYears-1
+                break
+            if facts.peRatio == null
+                return new Error
+            val += facts.peRatio
+
+        val /= numYears
+
+        if val < 12
+            return 1
+        if val > 16
+            return -1
+        return 0
+
+    getIndicatorPerformance12M: (equity) ->
+        if not equity.latestPrice or not equity.monthlyPrices or equity.monthlyPrices.length < 12
+            return new Error
+
+        ratio =  equity.latestPrice / equity.monthlyPrices[11]
+
+        if ratio > 1.05
+            return 1
+        if ratio < 0.95
+            return -1
+        return 0
+
+    getIndicatorPerformance6M: (equity) ->
+        if not equity.latestPrice or not equity.monthlyPrices or equity.monthlyPrices.length < 6
+            return new Error
+
+        ratio =  equity.latestPrice / equity.monthlyPrices[5]
+
+        if ratio > 1.05
+            return 1
+        if ratio < 0.95
+            return -1
+        return 0
+
+    getIndicatorPriceMomentum: (equity) ->
+        score12M = this.getIndicatorPerformance12M equity
+        score6M = this.getIndicatorPerformance6M equity
+
+        if score12M instanceof Error or score6M instanceof Error
+            return new Error
+
+        if score6M == 1 and score12M <= 0
+            return 1
+        if score6M == -1 and score12M >= 0
             return -1
         return 0
 

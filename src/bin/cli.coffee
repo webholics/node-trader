@@ -1,6 +1,7 @@
 trader = require '../lib/trader.js'
 ProgressBar = require 'progress'
 program = require 'commander'
+readline = require 'readline'
 
 # parse a list separated by :
 list = (val) -> val.split(':')
@@ -21,11 +22,24 @@ output = trader.OutputFormatter.create name, opts...
 rating = null
 if program.rating
     [name, opts...] = program.rating
+
+    # special case levermann, needs index name parameter
+    # use same as for the import if possible by default
+    IndexImporter = require '../lib/importers/index.js'
+    if opts.length == 0 and name.toLowerCase() == 'levermann' and importer instanceof IndexImporter
+        opts.push importer.getIndexName()
+
     rating = trader.Rating.create name, opts...
+
+rl = readline.createInterface
+    input: process.stdin,
+    output: process.stdout
+rl.setPrompt '', 0
 
 makeTick = (title) ->
     bar = null
     lastProgress = 0
+
     return (progress, total) ->
         # init bar on first call
         if not bar
@@ -39,7 +53,8 @@ makeTick = (title) ->
         lastProgress = progress
 
         if progress == total
-            process.stdout.write '\n'
+            # remove previously written line
+            rl.write null, { ctrl: true, name: 'u' }
 
 importerCb = (err, equities) ->
     if err
@@ -61,10 +76,16 @@ importerCb = (err, equities) ->
                 return b.rating.certainty - a.rating.certainty
             return b.rating.score - a.rating.score
 
+        if program.progress
+            # remove previously written line
+            rl.write null, { ctrl: true, name: 'u' }
+
         process.stdout.write output.equitiesToString(equities)
         #speed up exit due to crawler pool this would take some seconds otherwise
         process.exit 0
 
+    if program.progress
+        rl.write 'Rating equities...'
     rating.getRating equities, ratingCb
 
 importer.getEquities importerCb, (makeTick('Importing equities:\t') if program.progress)
