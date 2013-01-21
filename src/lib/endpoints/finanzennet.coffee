@@ -162,7 +162,9 @@ class FinanzennetEndpoint extends Endpoint
                 equity.isin = matches[2]
 
                 # current price
-                equity.latestPrice = parseFloat($('.pricebox .content table').eq(0).find('th:first-child').text().replace('.', '').replace(',','.'))
+                priceStr = $('.pricebox .content table').eq(0).find('th:first-child').text().split(' ')
+                equity.currency = priceStr[1]
+                equity.latestPrice = parseFloat(priceStr[0].replace('.', '').replace(',','.'))
 
                 # find finanzen.net equity ID
                 finanzennetId = null

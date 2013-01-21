@@ -3,6 +3,8 @@ Crawler = require('crawler').Crawler
 
 ###
 Fetch stock data from boersennews.de
+
+Attention: This endpoint returns all facts in currency EUR!
 ###
 class BoersennewsEndpoint extends Endpoint
     constructor: ->
@@ -84,16 +86,6 @@ class BoersennewsEndpoint extends Endpoint
                 for year, i of colsMap
                     factsPerYear[year] =
                         year: year
-                        pbRatio: null
-                        peRatio: null
-                        dividendPerStock: null
-                        returnOfEquity: null
-                        ebit: null
-                        ebitda: null
-                        ebitMargin: null
-                        ebitdaMargin: null
-                        equityRatio: null
-                        marketCap: null
 
                 # helper function
                 fillFacts = (cols, key) =>
@@ -119,7 +111,7 @@ class BoersennewsEndpoint extends Endpoint
                         fillFacts cols, 'pbRatio'
                         continue
                     if /^\s*Dividende je Aktie/.test label
-                        fillFacts cols, 'dividendPerStock'
+                        fillFacts cols, 'dividendPerShare'
                         continue
                     if /^\s*Eigenkapitalrendite/.test label
                         fillFacts cols, 'returnOfEquity'
@@ -133,22 +125,68 @@ class BoersennewsEndpoint extends Endpoint
                     if /^\s*EBITDA-Marge/.test label
                         fillFacts cols, 'ebitdaMargin'
                         continue
-                    if /^\s*EBITDA/.test label
-                        fillFacts cols, 'ebitda'
+                    if /^\s*Ergebnis je Aktie/.test label
+                        fillFacts cols, 'earningsPerShare'
                         continue
-                    if /^\s*EBIT/.test label
-                        fillFacts cols, 'ebit'
+                    if /^\s*Dynamisches KGV/.test label
+                        fillFacts cols, 'dynamicPeRatio'
+                        continue
+                    if /^\s*Cashflow je Aktie/.test label
+                        fillFacts cols, 'cashflowPerShare'
+                        continue
+                    if /^\s*KCV/.test label
+                        fillFacts cols, 'pcfRatio'
+                        continue
+                    if /^\s*KUV/.test label
+                        fillFacts cols, 'psRatio'
+                        continue
+                    if /^\s*Marktkapitalisierung je Mitarbeiter/.test label
+                        fillFacts cols, 'marketCapPerEmployee'
+                        continue
+                    if /^\s*Gewinnwachstum/.test label
+                        fillFacts cols, 'profitGrowth'
+                        continue
+                    if /^\s*Umsatzwachstum/.test label
+                        fillFacts cols, 'salesGrowth'
+                        continue
+                    if /^\s*Dividendenrendite/.test label
+                        fillFacts cols, 'dividendYield'
+                        continue
+                    if /^\s*Brutto-Umsatzrendite/.test label
+                        fillFacts cols, 'returnOnSales'
+                        continue
+                    if /^\s*Anzahl Mitarbeiter/.test label
+                        fillFacts cols, 'employees'
+                        continue
+                    if /^\s*Umsatz je Mitarbeiter/.test label
+                        fillFacts cols, 'salesPerEmployee'
+                        continue
+                    if /^\s*Cashflow-Marge/.test label
+                        fillFacts cols, 'cashflowMargin'
+                        continue
+                    if /^\s*Verschuldungsgrad/.test label
+                        fillFacts cols, 'debtEquityRatio'
+                        continue
+                    if /^\s*Dynamischer Verschuldungsgrad/.test label
+                        fillFacts cols, 'dynamicDebtEquityRatio'
+                        continue
+                    if /^\s*CFROI/.test label
+                        fillFacts cols, 'cfroi'
                         continue
 
                 # compute additional facts
                 for i, obj of factsPerYear
-                    if obj.marketCapPerEbitda != null and obj.ebitda != null
-                        obj.marketCap = obj.marketCapPerEbitda * obj.ebitda
+                    if obj.marketCapPerEmployee != null and obj.employees != null
+                        obj.marketCap = obj.marketCapPerEmployee * obj.employees
+
+                    if obj.salesPerEmployee != null and obj.employees != null
+                        obj.sales = obj.salesPerEmployee * obj.employees
 
                 facts = []
                 for i, obj of factsPerYear
                     # remove unnecessary facts
-                    delete obj['marketCapPerEbitda']
+                    delete obj.marketCapPerEmployee
+                    delete obj.salesPerEmployee
 
                     facts.push obj
                 facts.sort (a,b) -> b.year - a.year

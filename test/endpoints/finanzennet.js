@@ -29,7 +29,7 @@
 
   assertEquity = function(equity, name) {
     should.exist(equity);
-    equity.should.have.keys('name', 'isin', 'wkn', 'latestPrice', 'dailyPrices', 'monthlyPrices');
+    equity.should.have.keys('name', 'isin', 'wkn', 'currency', 'latestPrice', 'dailyPrices', 'monthlyPrices');
     if (name) {
       return equity.name.should.equal(name);
     }

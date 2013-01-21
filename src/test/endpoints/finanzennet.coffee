@@ -19,7 +19,7 @@ assertIndex = (index, name) ->
 
 assertEquity = (equity, name) ->
     should.exist equity
-    equity.should.have.keys 'name', 'isin', 'wkn', 'latestPrice', 'dailyPrices', 'monthlyPrices'
+    equity.should.have.keys 'name', 'isin', 'wkn', 'currency', 'latestPrice', 'dailyPrices', 'monthlyPrices'
 
     if name
         equity.name.should.equal name

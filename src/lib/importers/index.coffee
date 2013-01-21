@@ -52,9 +52,22 @@ class IndexImporter
                                 cb err, null
                             return
 
+                        emptyFacts =
+                            year: null
+                            pbRatio: null
+                            peRatio: null
+                            dividendPerStock: null
+                            returnOfEquity: null
+                            ebit: null
+                            ebitda: null
+                            ebitMargin: null
+                            ebitdaMargin: null
+                            equityRatio: null
+                            marketCap: null
+
                         # merge data
-                        equity.latestFacts = equity2.latestFacts
-                        equity.historicFacts = equity2.historicFacts
+                        equity.latestFacts = if equity2 then equity2.latestFacts else emptyFacts
+                        equity.historicFacts = if equity2 then equity2.historicFacts else []
 
                         equities.push equity
                         callbackCounter++

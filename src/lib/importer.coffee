@@ -6,7 +6,9 @@
     An equity object should contain the following attributes:
     {
         isin: The ISIN unique equity id
+        wkn: The WKN unique equity id
         name: The name of the equity
+        currency: e.g. EUR or USD
         latestPrice: The current price (as realtime as possible)
         monthlyPrices: [...] Array of monthly prices of the first day in each month of the last 12 months starting with the price at the beginning of the current month.
         dailyPrices: [...] Array of daily prices at the beginning of each day in the last 30 trading(!) days starting with the price of the last ended trading day.
@@ -14,21 +16,29 @@
             year: The year of the facts
             pbRatio: P/B ratio (german: KBV)
             peRatio: P/E ratio (german: KGV)
-            dividendPerStock: (german: Dividende pro Aktie)
+            dividendPerShare: (german: Dividende pro Aktie)
             returnOfEquity: (german: Eigenkapitalrendite)
-            ebit: EBIT
-            ebitda: EBITDA
             ebitMargin: (german: EBIT Marge)
             ebitdaMargin: (german: EBITDA Marge)
             equityRatio: (german: Eigenkapitalquote)
             marketCap: (german: Marktkapitalisierung)
+            earningsPerShare: (german: Ergebnis je Aktie)
+            dynamicPeRatio: (german: Dynamisches KGV)
+            cashflowPerShare: (german: Cashflow je Aktie)
+            pcfRatio: price / cashflow ratio (german: KCV)
+            psRatio: price sales ratio (german: KUV)
+            profitGrowth: (german: Gewinnwachstum)
+            salesGrowth: (german: Umsatzwachstum)
+            dividendYield: (german: Dividendenrendite)
+            returnOnSales: (german: Brutto-Umsatzrendite)
+            employees: number of employees
+            sales: (german: Umsatz)
+            cashfowMargin: (german: Cashflow-Marge)
+            debtEquityRatio: (german: Verschuldungsgrad)
+            dynamicDebtEquityRatio: (german: Dynamischer Verschuldungsgrad)
+            cfroi: Cashflow Return-on-Investment
         }
         historicFacts: [{},...] Array containing the same objects as latestFacts but with facts of the last years, latestFacts is not included in this list
-    }
-
-    The following attributes are optional:
-    {
-        wkn: The WKN unique equity id
     }
 
     If some values cannot be retrieved they will be null.

@@ -4,20 +4,19 @@
   should = require('should');
 
   assertEquity = function(equity, name) {
-    var f, factsKeys, _i, _len, _ref, _ref1, _ref2, _results;
+    var f, _i, _len, _ref, _results;
     should.exist(equity);
     equity.should.have.keys('name', 'isin', 'wkn', 'latestFacts', 'historicFacts');
     if (name) {
       equity.name.should.equal(name);
     }
-    factsKeys = ['year', 'pbRatio', 'peRatio', 'dividendPerStock', 'returnOfEquity', 'ebitMargin', 'equityRatio'];
-    (_ref = equity.latestFacts.should.have).keys.apply(_ref, factsKeys);
+    equity.latestFacts.should.be.a('object');
     equity.historicFacts.should.be.an.instanceOf(Array);
-    _ref1 = equity.historicFacts;
+    _ref = equity.historicFacts;
     _results = [];
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      f = _ref1[_i];
-      _results.push((_ref2 = f.should.have).keys.apply(_ref2, factsKeys));
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      f = _ref[_i];
+      _results.push(f.should.be.a('object'));
     }
     return _results;
   };

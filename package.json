@@ -1,7 +1,7 @@
 {
     "name": "trader",
-    "description": "Tool for fetching stock statistics and indicator computations.",
-    "version": "0.0.1",
+    "description": "Trader is a command line tool to crawl equity data and to rate equities with arbitrary rating systems.",
+    "version": "0.1.0",
     "homepage": "https://github.com/webholics/node-trader",
     "author": {
         "name": "Mario Volke",
@@ -9,7 +9,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git://github.com/webholics/node-trader.git"
+        "url": "https://github.com/webholics/node-trader.git"
     },
     "bugs": {
         "url": "https://github.com/webholics/node-trader/issues"
@@ -17,7 +17,10 @@
 	"engines" : {
         "node" : ">=0.8.x"
     },
-    "bin": "./bin/cli.js",
+    "bin": {
+        "trader": "./bin/cli.js"
+    },
+    "license": "MIT",
     "dependencies": {
         "crawler": "0.2.2",
         "commander": "1.1.1",

@@ -7,11 +7,10 @@ assertEquity = (equity, name) ->
     if name
         equity.name.should.equal name
 
-    factsKeys = ['year', 'pbRatio', 'peRatio', 'dividendPerStock', 'returnOfEquity', 'ebitMargin', 'equityRatio']
-    equity.latestFacts.should.have.keys factsKeys...
+    equity.latestFacts.should.be.a 'object'
     equity.historicFacts.should.be.an.instanceOf Array
     for f in equity.historicFacts
-        f.should.have.keys factsKeys...
+        f.should.be.a 'object'
 
 describe 'BoersennewsEndpoint', ->
     Endpoint = require '../../lib/endpoints/boersennews.js'

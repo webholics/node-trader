@@ -17,7 +17,7 @@ class TableOutputFormatter extends OutputFormatter
             table.cell 'Name', equity.name
             table.cell 'ISIN', equity.isin
             table.cell 'WKN', equity.wkn
-            table.cell 'Latest Price', equity.latestPrice, Table.Number(2)
+            table.cell 'Latest Price (' + equity.currency + ')', equity.latestPrice, Table.Number(2)
 
             if equity['rating']
                 table.cell 'Score', equity.rating.score, Table.Number(2)
