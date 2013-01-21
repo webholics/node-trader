@@ -2,7 +2,7 @@ _Trader_ is a command line tool build with [node](http://nodejs.org) to crawl eq
 
 ## Installation
 
-    $ npm install trader
+    $ npm -g install trader
 
 ## How to use the CLI tool
 
