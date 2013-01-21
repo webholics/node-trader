@@ -1,5 +1,7 @@
 _Trader_ is a command line tool build with [node](http://nodejs.org) to crawl equity data and to rate equities with arbitrary rating systems.
 
+The tool is inspired by [https://github.com/sscit/trader].
+
 ## Installation
 
     $ npm -g install trader
