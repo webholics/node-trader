@@ -44,6 +44,33 @@ There are the following rating systems shipped with trader:
 - __orderby__(factName, descending=true): Order equities by a fact in the latestFact object.
 - __levermann__(indexName): Rating system according to Susanne Levermann's book "Der entspannte Weg zum Reichtum"
 
+## Examples
+
+Load the 30 equities of the DAX and display as text table:
+
+    $ trader -i dax -o table
+
+Load equities of TecDax from Frankfurt Stock Exchange and output as JSON:
+
+    $ trader -i index:tecdax:FSE -o json
+
+Load a single equity by ISIN:
+
+    $ trader -i isin:DE0005419105:FSE -o table
+
+Load the 30 equities of the DAX, display as text table and order by dividend per share descending:
+
+    $ trader -i dax -o table -r orderby:dividendPerShare
+
+Rate DAX with Levermann rating system:
+
+    $ trader -i dax -o table -r levermann
+
+Output DAX to file first, read from file and rate with Levermann:
+
+    $ trader -i dax -o json > dax.json
+    $ trader -i jsonfile:dax.json -o table -r levermann:DAX
+
 ## Data Format
 
 An equity object should contain the following attributes:
