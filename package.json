@@ -1,7 +1,7 @@
 {
     "name": "trader",
     "description": "Trader is a command line tool to crawl equity data and to rate equities with arbitrary rating systems.",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "homepage": "https://github.com/webholics/node-trader",
     "author": {
         "name": "Mario Volke",

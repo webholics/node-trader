@@ -16,7 +16,7 @@
     return val.split(':');
   };
 
-  program.version('0.1.0').option('-p, --progress', 'show a progress bar if possible (do not use progress if you want to pipe the output)').option('-i, --input <importer>', 'importer to use to fetch equities [dax]', list, list('dax')).option('-o, --output <format>', 'choose output format [table]', list, list('table')).option('-r, --rating <type>', 'choose rating system [none]', list, null).parse(process.argv);
+  program.version('0.1.2').option('-p, --progress', 'show a progress bar if possible (do not use progress if you want to pipe the output)').option('-i, --input <importer>', 'importer to use to fetch equities [dax]', list, list('dax')).option('-o, --output <format>', 'choose output format [table]', list, list('table')).option('-r, --rating <type>', 'choose rating system [none]', list, null).parse(process.argv);
 
   _ref = program.input, name = _ref[0], opts = 2 <= _ref.length ? __slice.call(_ref, 1) : [];
 
