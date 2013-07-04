@@ -9,13 +9,13 @@ class JsonOutputFormatter extends OutputFormatter
     @param {Boolean} min Whether to minimize the JSON output
     ###
     constructor: (min) ->
-        this.min = if min then true else false
+        @min = if min then true else false
 
     ###
     Convert an array of equities to string
     ###
     equitiesToString: (equities) ->
-        if this.min
+        if @min
             return JSON.stringify equities
         else
             return JSON.stringify equities, null, 2

@@ -9,8 +9,8 @@ class LevermannRating extends Rating
     @param {String} indexName Name of the index used for perfomance comparison, uses search on finanzen.net to find the actual index
     ###
     constructor: (indexName) ->
-        this.indexName = indexName
-        this.finanzennetEndpoint = Endpoint.create 'finanzennet'
+        @indexName = indexName
+        @finanzennetEndpoint = Endpoint.create 'finanzennet'
 
     ###
     Compute the rating for a list of equities.
@@ -26,7 +26,7 @@ class LevermannRating extends Rating
     ###
     getRating: (equities, cb) ->
         # we need to load the index first
-        this.finanzennetEndpoint.searchIndex this.indexName, (err, index) =>
+        @finanzennetEndpoint.searchIndex @indexName, (err, index) =>
             if err
                 cb err, null
                 return
@@ -34,20 +34,23 @@ class LevermannRating extends Rating
             # combine indicators
             ratings = {}
             for equity in equities
+                if not equity
+                    continue
+
                 totalScore = 0
                 totalErrors = 0
 
                 scores = [
-                    this.getIndicatorReturnOfEquity(equity),
-                    this.getIndicatorEbitMargin(equity),
-                    this.getIndicatorEquityRatio(equity),
-                    this.getIndicatorPbRatio(equity),
-                    this.getIndicatorPeRatio(equity),
-                    this.getIndicatorPeRatioMean(equity),
-                    this.getIndicatorPerformance12M(equity),
-                    this.getIndicatorPerformance6M(equity),
-                    this.getIndicatorPriceMomentum(equity),
-                    this.getIndicator3MonthReversal(equity, index)
+                    @getIndicatorReturnOfEquity(equity),
+                    @getIndicatorEbitMargin(equity),
+                    @getIndicatorEquityRatio(equity),
+                    @getIndicatorPbRatio(equity),
+                    @getIndicatorPeRatio(equity),
+                    @getIndicatorPeRatioMean(equity),
+                    @getIndicatorPerformance12M(equity),
+                    @getIndicatorPerformance6M(equity),
+                    @getIndicatorPriceMomentum(equity),
+                    @getIndicator3MonthReversal(equity, index)
                 ]
 
                 for score in scores
@@ -173,8 +176,8 @@ class LevermannRating extends Rating
         return 0
 
     getIndicatorPriceMomentum: (equity) ->
-        score12M = this.getIndicatorPerformance12M equity
-        score6M = this.getIndicatorPerformance6M equity
+        score12M = @getIndicatorPerformance12M equity
+        score6M = @getIndicatorPerformance6M equity
 
         if score12M instanceof Error or score6M instanceof Error
             return new Error
@@ -186,7 +189,7 @@ class LevermannRating extends Rating
         return 0
 
     getIndicator3MonthReversal: (equity, index) ->
-        if not this.isLargeCap
+        if not @isLargeCap
             return 0
 
         if not equity.monthlyPrices or equity.monthlyPrices.length < numMonths+1

@@ -10,8 +10,8 @@ class IsinImporter
     @param {String} stockMarket The finanzen.net string for a stock market (e.g. FSE for Frankfurt Stock Exchange)
     ###
     constructor: (isin, stockMarket = 'FSE') ->
-        this.isin = isin
-        this.stockMarket = stockMarket
+        @isin = isin
+        @stockMarket = stockMarket
 
     ###
     Retrieve the equity.
@@ -25,20 +25,17 @@ class IsinImporter
         if tick
             tick 0, 1
 
-        finanzennetEndpoint.getEquityByIsin this.isin, this.stockMarket, (err, equity) =>
+        finanzennetEndpoint.getEquityByIsin @isin, @stockMarket, (err, equity) =>
             if err
                 cb err, null
                 return
 
             # fetch additional data from boersennews.de
             boersennewsEndpoint.getEquityByIsin equity.isin, (err, equity2) =>
-                if err
-                    cb err, null
-                    return
-
-                # merge data
-                equity.latestFacts = equity2.latestFacts
-                equity.historicFacts = equity2.historicFacts
+                if not err
+                    # merge data
+                    equity.latestFacts = if equity2 then equity2.latestFacts else {}
+                    equity.historicFacts = if equity2 then equity2.historicFacts else []
 
                 if tick
                     tick 1, 1

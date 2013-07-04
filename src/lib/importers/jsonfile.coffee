@@ -7,7 +7,7 @@ The JSON file needs to have the format of the JsonOutputFormatter.
 ###
 class JsonfileImporter
     constructor: (filename) ->
-        this.filename = filename
+        @filename = filename
 
     ###
     Retrieve the list of all equities of the index.
@@ -15,7 +15,7 @@ class JsonfileImporter
     callback is called with Error|null and Array
     ###
     getEquities: (cb) ->
-        fs.readFile this.filename, (err, data) =>
+        fs.readFile @filename, (err, data) =>
             if err
                 cb err, null
                 return

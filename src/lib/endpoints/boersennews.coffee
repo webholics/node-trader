@@ -8,8 +8,8 @@ Attention: This endpoint returns all facts in currency EUR!
 ###
 class BoersennewsEndpoint extends Endpoint
     constructor: ->
-        this.baseUrl = 'http://www.boersennews.de'
-        this.crawler = new Crawler
+        @baseUrl = 'http://www.boersennews.de'
+        @crawler = new Crawler
             forceUTF8: true
             #debug: true
             maxConnections: 10
@@ -26,10 +26,10 @@ class BoersennewsEndpoint extends Endpoint
 
         # search supports GET requests
         url = 'http://www.boersennews.de/markt/search/simple/key/' + encodeURIComponent(isin) + '/category/sto'
-        this.crawler.queue [
+        @crawler.queue [
             uri: url
             callback: (error, result, $) =>
-                if error
+                if error or result.statusCode != 200
                     cb new Error('Could not load boersennews.de!'), null
                     return
 
@@ -37,14 +37,14 @@ class BoersennewsEndpoint extends Endpoint
                 for row in $('table.tabList.lastLine tr:has(td)')
                     tds = $(row).find('td')
                     if $(tds[2]).text().toLowerCase() == isin
-                        url = this.baseUrl + $(tds[0]).find('a').attr('href').replace("/profile", "/fundamental")
+                        url = @baseUrl + $(tds[0]).find('a').attr('href').replace("/profile", "/fundamental")
                         break
 
                 if not url
                     cb null, null
                     return
 
-                this.crawlEquity url, cb
+                @crawlEquity url, cb
             ]
         this
 
@@ -56,22 +56,22 @@ class BoersennewsEndpoint extends Endpoint
     @param {Function} cb Callback is called with Error|null and Object, the crawled equity
     ###
     crawlEquity: (url, cb) ->
-        this.crawler.queue [
+        @crawler.queue [
             uri: url
             callback: (error, result, $) =>
-                if error
+                if error or result.statusCode != 200
                     cb new Error('Could not load boersennews.de!'), null
                     return
 
-                if not this._isValidEquityUrl(result.request.href)
+                if not @_isValidEquityUrl(result.request.href)
                     cb new Error('Not a valid equity URL!'), null
                     return
 
                 equity =
-                    name: $('h2').text().replace(' Fundamentale Daten', '')
+                    name: $('h1').text().replace(' Fundamentale Daten', '')
 
                 # WKN and ISIN
-                matches = /ISIN:\s([^\s]+)\s\|\sWKN:\s([^\s]+)/.exec($('.instrumentInfos h3').text())
+                matches = /ISIN:\s+([^\s]+)\s+\|\s+WKN:\s+([^\s]+)/.exec($('.instrumentInfos .attLine').text())
                 equity.isin = matches[1]
                 equity.wkn = matches[2]
 

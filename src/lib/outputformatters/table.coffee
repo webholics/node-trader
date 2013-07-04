@@ -13,7 +13,13 @@ class TableOutputFormatter extends OutputFormatter
     equitiesToString: (equities) ->
         table = new Table
 
+        nullEquities = 0
         equities.forEach (equity) =>
+            if not equity
+                # count number of null equities (those equities where data could not be retrieved)
+                nullEquities++
+                return
+
             table.cell 'Name', equity.name
             table.cell 'ISIN', equity.isin
             table.cell 'WKN', equity.wkn
@@ -24,6 +30,12 @@ class TableOutputFormatter extends OutputFormatter
                 table.cell 'Certainty, %', equity.rating.certainty * 100, Table.Number(2)
 
             table.newRow()
-        table.toString()
+
+        output = table.toString()
+
+        if nullEquities > 0
+            output += '\n' + nullEquities + ' equities missing!'
+
+        output
 
 module.exports = TableOutputFormatter

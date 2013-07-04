@@ -10,8 +10,8 @@ class IndexImporter
     @param {String} stockMarket The finanzen.net string for a stock market (e.g. FSE for Frankfurt Stock Exchange)
     ###
     constructor: (indexName, stockMarket = 'FSE') ->
-        this.indexName = indexName
-        this.stockMarket = stockMarket
+        @indexName = indexName
+        @stockMarket = stockMarket
 
     ###
     Retrieve the list of all equities of the index.
@@ -26,7 +26,7 @@ class IndexImporter
         finanzennetEndpoint = Endpoint.create 'finanzennet'
         boersennewsEndpoint = Endpoint.create 'boersennews'
 
-        finanzennetEndpoint.getEquityUrlsByIndex this.indexName, (err, urls) =>
+        finanzennetEndpoint.getEquityUrlsByIndex @indexName, (err, urls) =>
             if err
                 cb err, null
                 return
@@ -36,50 +36,32 @@ class IndexImporter
 
             equities = []
             callbackCounter = 0
+            countEquity = =>
+                callbackCounter++
+                if tick
+                    tick callbackCounter, urls.length
+                if callbackCounter == urls.length
+                    cb null, equities
+
             for url in urls
-                finanzennetEndpoint.crawlEquity url, this.stockMarket, (err, equity) =>
+                finanzennetEndpoint.crawlEquity url, @stockMarket, (err, equity) =>
                     if err
-                        if callbackCounter < urls.length
-                            callbackCounter = urls.length + 1 # prevent calling cb a second time
-                            cb err, null
+                        equities.push null
+                        countEquity()
                         return
 
                     # fetch additional data from boersennews.de
                     boersennewsEndpoint.getEquityByIsin equity.isin, (err, equity2) =>
-                        if err
-                            if callbackCounter < urls.length
-                                callbackCounter = urls.length + 1 # prevent calling cb a second time
-                                cb err, null
-                            return
-
-                        emptyFacts =
-                            year: null
-                            pbRatio: null
-                            peRatio: null
-                            dividendPerStock: null
-                            returnOfEquity: null
-                            ebit: null
-                            ebitda: null
-                            ebitMargin: null
-                            ebitdaMargin: null
-                            equityRatio: null
-                            marketCap: null
-
-                        # merge data
-                        equity.latestFacts = if equity2 then equity2.latestFacts else emptyFacts
-                        equity.historicFacts = if equity2 then equity2.historicFacts else []
+                        if not err
+                            # merge data
+                            equity.latestFacts = if equity2 then equity2.latestFacts else {}
+                            equity.historicFacts = if equity2 then equity2.historicFacts else []
 
                         equities.push equity
-                        callbackCounter++
-
-                        if tick
-                            tick callbackCounter, urls.length
-
-                        if callbackCounter == urls.length
-                            cb null, equities
+                        countEquity()
         this
 
-    getStockMarket: -> return this.stockMarket
-    getIndexName: -> return this.indexName
+    getStockMarket: -> return @stockMarket
+    getIndexName: -> return @indexName
 
 module.exports = IndexImporter

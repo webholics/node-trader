@@ -6,10 +6,9 @@ Fetch stock data from finanzen.net
 ###
 class FinanzennetEndpoint extends Endpoint
     constructor: ->
-        this.baseUrl = 'http://www.finanzen.net'
-        this.crawler = new Crawler
+        @baseUrl = 'http://www.finanzen.net'
+        @crawler = new Crawler
             forceUTF8: true
-            #debug: true
             maxConnections: 10
             # Means if we request the same URI twice it is not crawled again.
             # But callback will be called!
@@ -24,7 +23,7 @@ class FinanzennetEndpoint extends Endpoint
         that = this
 
         # fetch indicies
-        this.crawler.queue [
+        @crawler.queue [
             uri: 'http://www.finanzen.net/suchergebnis.asp?strSuchString=' + encodeURIComponent(name) + '&strKat=Indizes'
             callback: (error, result, $) =>
                 if error
@@ -32,14 +31,14 @@ class FinanzennetEndpoint extends Endpoint
                     return
 
                 # if search has a unique result finanzen.net redirects directly to the equity page
-                if this._isValidIndexUrl result.request.href
-                    this.crawlIndex result.request.href, cb
+                if @_isValidIndexUrl result.request.href
+                    @crawlIndex result.request.href, cb
                 else
                     url = $('.main table tr').eq(1).find('a').attr('href')
                     if not url
                         cb null, null
                     else
-                        this.crawlIndex this.baseUrl + url, cb
+                        @crawlIndex @baseUrl + url, cb
             ]
         this
 
@@ -48,7 +47,7 @@ class FinanzennetEndpoint extends Endpoint
     ###
     getEquityByIsin: (isin, stockMarket, cb) ->
         # we just use search here
-        this.searchEquity(isin, stockMarket, cb)
+        @searchEquity(isin, stockMarket, cb)
         this
 
     ###
@@ -58,7 +57,7 @@ class FinanzennetEndpoint extends Endpoint
     searchEquity: (name, stockMarket, cb) ->
         # search supports GET requests
         url = 'http://www.finanzen.net/suchergebnis.asp?strSuchString=' + encodeURIComponent(name) + '&strKat=Aktien'
-        this.crawler.queue [
+        @crawler.queue [
             uri: url
             callback: (error, result, $) =>
                 if error
@@ -66,14 +65,14 @@ class FinanzennetEndpoint extends Endpoint
                     return
 
                 # if search has a unique result finanzen.net redirects directly to the equity page
-                if this._isValidEquityUrl result.request.href
-                    this.crawlEquity result.request.href, stockMarket, cb
+                if @_isValidEquityUrl result.request.href
+                    @crawlEquity result.request.href, stockMarket, cb
                 else
                     url = $('.main table tr').eq(1).find('a').attr('href')
                     if not url
                         cb null, null
                     else
-                        this.crawlEquity this.baseUrl + url, stockMarket, cb
+                        @crawlEquity @baseUrl + url, stockMarket, cb
             ]
         this
 
@@ -82,7 +81,7 @@ class FinanzennetEndpoint extends Endpoint
     ###
     getEquityUrlsByIndex: (indexName, cb) ->
 
-        this.searchIndex indexName, (err, index) =>
+        @searchIndex indexName, (err, index) =>
             if err
                 cb err, null
                 return
@@ -92,7 +91,7 @@ class FinanzennetEndpoint extends Endpoint
                 return
 
             # fetch first index page to crawl pagination
-            this.crawler.queue [
+            @crawler.queue [
                 uri: index.url + '/Werte'
                 callback: (err, result, $) =>
                     if err
@@ -111,10 +110,10 @@ class FinanzennetEndpoint extends Endpoint
                                 cb new Error('Could not load finanzen.net!'), null
                             return
 
-                        for row, i in $('.main').last().find('table tr')
+                        for row, i in $('.main').last().find('.table_quotes table tr')
                             # ignore head row of table
                             if i > 0
-                                urls.push this.baseUrl + $(row).find('td:first-child a').attr('href')
+                                urls.push @baseUrl + $(row).find('td:first-child a').attr('href')
 
                         pageCounter++
                         if pageCounter == numPages
@@ -123,8 +122,8 @@ class FinanzennetEndpoint extends Endpoint
                     # fetch all index pages
                     indexPageCallback(err, result, $) # first page
                     for a in paginationLinks
-                        this.crawler.queue [
-                            uri: this.baseUrl + $(a).attr('href')
+                        @crawler.queue [
+                            uri: @baseUrl + $(a).attr('href')
                             callback: indexPageCallback
                         ]
             ]
@@ -142,14 +141,14 @@ class FinanzennetEndpoint extends Endpoint
         # use correct stock market
         url = url.replace(/@stBoerse_.*/, '') + '@stBoerse_' + stockMarket
 
-        this.crawler.queue [
+        @crawler.queue [
             uri: url
             callback: (error, result, $) =>
-                if error
+                if error or result.statusCode != 200
                     cb new Error('Could not load finanzen.net!'), null
                     return
 
-                if not this._isValidEquityUrl(result.request.href)
+                if not @_isValidEquityUrl(result.request.href)
                     cb new Error('Not a valid equity URL!'), null
                     return
 
@@ -157,7 +156,7 @@ class FinanzennetEndpoint extends Endpoint
                     name: $('.pricebox h2').first().text().replace(/Aktienkurs\s/, '').replace(/\sin.*/, '')
 
                 # WKN and ISIN
-                matches = /WKN:\s([^\s]+)\s\/\sISIN:\s([^\]]+)/.exec($('h1').text())
+                matches = /WKN:\s([^\s]*)\s\/\sISIN:\s([^\]]*)/.exec($('h1').text())
                 equity.wkn = matches[1]
                 equity.isin = matches[2]
 
@@ -179,7 +178,7 @@ class FinanzennetEndpoint extends Endpoint
                     cb new Error('Problem while parsing equity page!'), null
 
                 now = new Date
-                this.crawler.queue [
+                @crawler.queue [
                     uri: 'http://www.finanzen.net/kurse/kurse_historisch.asp'
                     method: 'POST',
                     form:
@@ -192,7 +191,7 @@ class FinanzennetEndpoint extends Endpoint
                         strBoerse: stockMarket
                         pkAktieNr: finanzennetId
                     callback: (err, result, $) =>
-                        if err
+                        if err or result.statusCode != 200
                             cb new Error('Could not load finanzen.net!'), null
                             return
 
@@ -231,14 +230,14 @@ class FinanzennetEndpoint extends Endpoint
     Crawl an index by its URL on finanzen.net
     ###
     crawlIndex: (url, cb) ->
-        this.crawler.queue [
+        @crawler.queue [
             uri: url
             callback: (err, result, $) =>
-                if err
+                if err or result.statusCode != 200
                     cb new Error('Could not load finanzen.net!'), null
                     return
 
-                if not this._isValidIndexUrl(result.request.href)
+                if not @_isValidIndexUrl(result.request.href)
                     cb new Error('Not a valid index URL!'), null
                     return
 
@@ -259,7 +258,7 @@ class FinanzennetEndpoint extends Endpoint
                 index.latestPrice = parseFloat($('.pricebox .content table').eq(0).find('th:first-child').text().replace('.', '').replace(',','.'))
 
                 now = new Date
-                this.crawler.queue [
+                @crawler.queue [
                     uri: url + '/Historisch'
                     method: 'POST',
                     form:
@@ -270,7 +269,7 @@ class FinanzennetEndpoint extends Endpoint
                         dtMonat2: now.getMonth()
                         dtJahr2: now.getFullYear()
                     callback: (err, result, $) =>
-                        if err
+                        if err or result.statusCode != 200
                             cb(new Error('Could not load finanzen.net!'), null)
                             return
 

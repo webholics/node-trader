@@ -7,7 +7,7 @@ readline = require 'readline'
 list = (val) -> val.split(':')
 
 program
-    .version('0.1.0')
+    .version('0.1.1')
     .option('-p, --progress', 'show a progress bar if possible (do not use progress if you want to pipe the output)')
     .option('-i, --input <importer>', 'importer to use to fetch equities [dax]', list, list('dax'))
     .option('-o, --output <format>', 'choose output format [table]', list, list('table'))

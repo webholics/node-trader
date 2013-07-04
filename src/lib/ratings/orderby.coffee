@@ -8,8 +8,8 @@ class OrderbyRating extends Rating
     @param {String} factName Name of the fact to sort equities with. Must be a fact available in equity.latestFacts
     ###
     constructor: (factName, descending = true) ->
-        this.factName = factName
-        this.descending = descending
+        @factName = factName
+        @descending = descending
 
     ###
     Compute the rating for a list of equities.
@@ -27,13 +27,16 @@ class OrderbyRating extends Rating
         ratings = {}
 
         for equity in equities
-            if not equity.latestFacts.hasOwnProperty(this.factName) or equity.latestFacts[this.factName] == null
+            if not equity
+                continue
+
+            if not equity.latestFacts.hasOwnProperty(@factName) or equity.latestFacts[@factName] == null
                 ratings[equity.isin] =
                     score: 0
                     certainty: 0
             else
-                score = equity.latestFacts[this.factName]
-                if not this.descending
+                score = equity.latestFacts[@factName]
+                if not @descending
                     score *= -1
                 ratings[equity.isin] =
                     score: score
